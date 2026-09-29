@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vna-filter-analyzer"
+version = "1.0.0"
+description = "Rohde & Schwarz VNA Filter Measurement Analysis & Comparison Tool"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "RF Microwave Engineering Lab" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "PySide6>=6.6.0",
+    "plotly>=5.18.0",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "pandas>=2.0.0",
+    "reportlab>=4.0.0",
+    "openpyxl>=3.1.0",
+    "matplotlib>=3.8.0",
+]
+
+[project.scripts]
+vna-filter-analyzer = "vna_filter_analyzer.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vna_filter_analyzer*"]
+
+[tool.setuptools.package-data]
+vna_filter_analyzer = ["resources/*"]

@@ -1,0 +1,59 @@
+HAIRPIN MICROSTRIP BPF — STAGE 1 SYNTHESIS REPORT
+====================================================
+
+TARGET SPECIFICATIONS
+  Centre frequency   fc  = 868.0 MHz
+  3 dB bandwidth     BW  = 10.0 MHz
+  Passband           863.0 – 873.0 MHz
+  Fractional BW      FBW = 1.1521 %
+  Filter order       N   = 5
+  Return loss        ≤ -20 dB in passband
+  Insertion loss     ≥ -2 dB in passband
+  Stopband atten.    ≤ -30 dB outside passband
+
+PROTOTYPE
+  Type     : Chebyshev, 0.1 dB ripple
+  g-values : g[0]=1.00000  g[1]=1.14684  g[2]=1.37121  g[3]=1.97503  g[4]=1.37121  g[5]=1.14684  g[6]=1.00000
+
+COUPLING MATRIX
+  M[1,2] = 0.009187
+  M[2,3] = 0.007001
+  M[3,4] = 0.007001
+  M[4,5] = 0.009187
+  Qe_in  = 99.5455
+  Qe_out = 99.5455
+
+SUBSTRATE (FR4)
+  h  = 1.60 mm
+  εr = 4.4
+  tan δ = 0.02
+  Cu t  = 35 µm
+
+RESONATOR DIMENSIONS
+  Line width  W = 3.0590 mm  (50 Ω)
+  εr_eff        = 3.3302
+  Guided λ      = 189.394 mm
+  Half-wave L   = 94.697 mm
+  Hairpin arm   = 47.348 mm  (add ~1.53 mm bend correction)
+  Inner gap     = 3.0590 mm  (between legs of same resonator)
+
+INTER-RESONATOR SPACINGS  (first-pass — refine in EM sim)
+  d[1,2] c-c=5.531 mm  edge=2.472 mm
+  d[2,3] c-c=5.708 mm  edge=2.649 mm
+  d[3,4] c-c=5.708 mm  edge=2.649 mm
+  d[4,5] c-c=5.531 mm  edge=2.472 mm
+  Feed: tapped line, tap_pos = 3.797 mm from shorted end
+
+OUTPUT FILES
+  results/stage1_s_params.png       — full frequency S11/S21
+  results/stage1_passband_zoom.png  — passband detail
+  results/stage1_network.s2p        — Touchstone for Qucs-S
+  results/stage1_dimensions.txt     — this file
+
+NEXT STEPS
+  Stage 2 : Import stage1_network.s2p into Qucs-S.
+            Replace ideal elements with MLIN/MCOUPLED models.
+            Use dimensions above as starting values.
+  Stage 3 : openEMS FDTD simulation with exact geometry.
+            Optimise gaps — especially s[1,2] and s[4,5]
+            which are most sensitive to fabrication tolerance.

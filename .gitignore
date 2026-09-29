@@ -1,0 +1,24 @@
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+
+# Testing cache
+.pytest_cache/
+
+# Large archives
+*.zip
+
+# Temporary files
+*~
+*.swp
+*.bak
+.DS_Store

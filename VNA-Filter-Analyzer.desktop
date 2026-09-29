@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VNA Filter Analyzer
+GenericName=RF & Microwave Filter Analyzer
+Comment=Rohde & Schwarz VNA Filter Measurement & Comparison Tool
+Exec=/home/kaust/Documents/Microstrip filter/run.sh %F
+Icon=/home/kaust/Documents/Microstrip filter/vna_filter_analyzer/resources/icon.png
+Terminal=false
+Categories=Development;Engineering;Science;
+StartupWMClass=VNA Filter Analyzer
+MimeType=text/csv;application/vnd.ms-excel;text/plain;
+Keywords=VNA;Filter;Rohde;Schwarz;S21;S11;Bandwidth;DGS;RF;Microwave;

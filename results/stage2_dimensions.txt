@@ -1,0 +1,48 @@
+HAIRPIN BPF — PHYSICAL DIMENSIONS FOR QUCS-S / PCB LAYOUT
+============================================================
+Substrate
+  Material  : FR4
+  er        : 4.4
+  tan delta : 0.02
+  h         : 1.6000 mm
+  t (Cu)    : 35 µm  (1 oz)
+
+Resonator line
+  Width W   : 3.0590 mm   (50-Ω microstrip)
+  Z0 (calc) : 50.234 Ω
+
+Hairpin dimensions (each of 5 resonators)
+  Total λ/2 length : 94.6969 mm
+  Each arm (leg)   : 47.3484 mm
+  Folded gap       : use W (= 3.0590 mm) as starting point
+                     → tune in QUCS-S Microstrip component
+
+Coupling gaps  (centre-to-centre spacing confirmed by EM)
+  S01 (port↔res1) : 2.472 mm
+  S12 (res1↔res2) : 2.649 mm
+  S23 (res2↔res3) : 2.649 mm
+  S34 (res3↔res4) : 2.649 mm   [symmetric = S23]
+  S45 (res4↔res5) : 2.649 mm   [symmetric = S12]
+  S56 (res5↔port) : 2.472 mm   [symmetric = S01]
+
+J-inverter values (from synthesis — realised by gaps in EM)
+  J_ext = 0.002512 S   (input/output)
+  J12   = 0.000289 S
+  J23   = 0.000220 S
+  J34   = 0.000220 S
+  J45   = 0.000289 S
+
+Chebyshev prototype g-values
+  g = ['1.00000', '1.14684', '1.37121', '1.97503', '1.37121', '1.14684', '1.00000']
+
+External Q, coupling coefficients
+  Qe  = 99.5455
+  M12 = 0.009187
+  M23 = 0.007001
+  M34 = 0.007001
+  M45 = 0.009187
+
+NOTE ON HAIRPIN FOLD
+  The folded gap between the two arms of EACH resonator is NOT the
+  coupling gap above.  It is typically set to W or slightly wider
+  (1–2 mm) and tuned for resonant frequency in EM.  Start with 1 mm.

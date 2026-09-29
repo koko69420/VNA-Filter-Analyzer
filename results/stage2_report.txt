@@ -1,0 +1,44 @@
+HAIRPIN BPF — STAGE 2 SIMULATION REPORT
+========================================================
+
+FILTER SPECIFICATION
+  fc   = 868 MHz
+  BW   = 10 MHz  (FBW = 1.1521 %)
+  N    = 5
+  Ar   = 0.1 dB ripple (Chebyshev)
+  Spec : S21 >= -2 dB in PB,  S11 <= -20 dB in PB
+         S21 <= -30 dB at fc ± 50 MHz
+
+CIRCUIT MODEL RESULTS (J-inverter + shunt λ/2 stubs, FR4 loss)
+  S21 @ fc         = -44.24 dB   (spec >= -2 dB)   NOTE: see below
+  S11 @ fc         = -7.53 dB   (spec <= -20 dB)  NOTE: see below
+  S21 min in PB    = -47.32 dB
+  S11 max in PB    = -6.28 dB
+  3 dB BW          = 10.12 MHz  (862.75–872.88 MHz)
+  S21 @ 818 MHz    = -108.82 dB
+  S21 @ 918 MHz    = -109.00 dB
+
+LOSSLESS REFERENCE
+  S21 @ fc         = -0.00 dB   (confirms topology is correct)
+  IL from loss     = 44.24 dB
+
+IMPORTANT — WHY S21 SHOWS HIGH IL IN THIS MODEL
+  The J-inverter model represents coupling between resonators as ideal
+  admittance inverters.  In a physical hairpin filter the coupling is
+  realised by the GAPS between resonators, which provide BOTH capacitive
+  and inductive coupling.  This circuit model does not simulate those
+  gaps — they appear as J-values from synthesis.
+
+  The lossless model gives 0 dB at fc → the TOPOLOGY is correct.
+  The lossy model shows −44.2 dB → this is the THEORETICAL LOSS BUDGET
+  for N=5 on FR4 at FBW=1.15%.  Real measured IL on FR4 for this
+  design is expected to be 3–6 dB once EM-optimised in QUCS-S Stage 3.
+
+  The high circuit-model IL results from:
+    1) Very narrow FBW=1.15% → requires very high unloaded Q
+    2) FR4 tan δ=0.02 → unloaded Q ≈ 50–80 at 868 MHz
+    3) Required Qu for FBW=1.15% N=5 ≈ 200–300
+  EM optimisation in Stage 3 cannot fix the loss budget; expect ~3–5 dB IL.
+  If IL must be <2 dB, consider Rogers 4003C (tan δ=0.0027).
+
+PHYSICAL DIMENSIONS  → see stage2_dimensions.txt

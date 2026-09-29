@@ -1,0 +1,302 @@
+HAIRPIN BPF — STAGE 3: QUCS-S WORKFLOW GUIDE
+==============================================
+N=5, fc=868 MHz, BW=10 MHz, FR4 h=1.6 mm
+==============================================
+
+WHY QUCS-S AFTER STAGE 2
+--------------------------
+Stage 2 is a circuit model with ideal J-inverters.  It does NOT simulate:
+  • The capacitive + inductive coupling through physical gaps
+  • The fringing fields at the open ends of each hairpin arm
+  • The effect of the folded geometry on resonant frequency
+  • Discontinuity effects at bends
+
+QUCS-S uses real Microstrip components (MLIN, MCOUPLED, MBEND, MOPEN)
+from a quasi-static transmission-line library so all of the above
+are included automatically.
+
+QUCS-S also allows SPICE-compatible AC sweep which is fast enough to
+tune the design interactively.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1 — INSTALL AND CONFIGURE QUCS-S
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Download QUCS-S from:  https://ra3xdh.github.io/
+   (Windows installer or Linux AppImage — both work)
+
+2. On first launch: Edit → Simulation → select "Qucsator" as the
+   default simulator.  (Ngspice works too but Qucsator is more
+   stable for microwave circuits.)
+
+3. Optional: enable the microstrip tools via Tools → Transmission
+   Line Calculator → confirm "Microstrip" mode works.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2 — SUBSTRATE DEFINITION (do this ONCE per schematic)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the component panel (left side) go to:
+  Components → Transmission Lines → Substrate
+
+Drag a "SUBST" block onto the schematic.  Double-click to set:
+
+  Parameter   Value       Notes
+  ─────────── ─────────── ──────────────────────────────────────
+  er          4.4         FR4 relative permittivity
+  h           1.6 mm      substrate height
+  t           0.035 mm    copper thickness (1 oz = 35 µm)
+  tand        0.02        loss tangent
+  rho         1.724e-8    copper resistivity (Ω·m)
+  D           0.15e-6     roughness (µm) — leave default
+
+Name it "Subst1".  Every microstrip component will reference "Subst1".
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3 — SCHEMATIC TOPOLOGY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The circuit represents the physical hairpin layout as a chain of
+coupled microstrip sections.  Each hairpin resonator has:
+  • Two arms (MLINs) connected by a short bend (MBEND or just a wire)
+  • An open end on each arm (MOPEN — accounts for fringing capacitance)
+
+The coupling between adjacent resonators uses MCOUPLED (edge-coupled
+parallel lines) for each gap.
+
+Build the schematic from left to right:
+
+  Port1 (50Ω)
+    │
+  [MLIN: feed line, W=3.059mm, L=5mm]
+    │
+  [MCOUPLED: gap S01=2.472mm, W=3.059mm, L=47.348mm]  ← input coupling
+    │                │
+  Port shunt        Arm 1a of Resonator 1
+    │                │
+    GND           [MBEND or wire]
+                     │
+                  Arm 1b of Resonator 1
+                     │
+                  [MOPEN] ← open end fringing correction
+                     │
+                  [MCOUPLED: gap S12=2.649mm]  ← coupling to res 2
+                     │
+                  ... repeat for resonators 2, 3, 4, 5 ...
+                     │
+                  [MCOUPLED: gap S01=2.472mm]  ← output coupling
+                     │
+  [MLIN: feed line, W=3.059mm, L=5mm]
+    │
+  Port2 (50Ω)
+
+SIMPLIFIED APPROACH (recommended for first pass):
+  Use MCOUPLED for each gap between resonators.
+  Model each resonator arm as MLIN + MOPEN at the tip.
+  Ignore MBEND initially (its effect is <0.5 mm equivalent length).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4 — STEP-BY-STEP SCHEMATIC ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4.1 — Place the substrate
+  • Components → Transmission Lines → Substrate → "SUBST"
+  • Set all FR4 values as above, name "Subst1"
+
+STEP 4.2 — Place port 1
+  • Components → Ports → "Port"
+  • Number = 1, Z = 50 Ohm
+
+STEP 4.3 — Input feed line
+  • Components → Transmission Lines → Microstrip → "MLIN"
+  • W = 3.059 mm
+  • L = 5 mm  (short feed; just to connect port)
+  • Subst = Subst1
+
+STEP 4.4 — Input coupling gap (Port → Resonator 1)
+  • Components → Transmission Lines → Coupled Microstrip → "MCOUPLED"
+  • W = 3.059 mm
+  • L = 47.348 mm  (arm length = λ/4 at fc)
+  • S = 2.472 mm   (gap from synthesis)
+  • Subst = Subst1
+
+  Connect port 1 of MCOUPLED to the feed line.
+  Port 2 of MCOUPLED goes to GND (the shunt side is the port stub).
+  Port 3 of MCOUPLED is the start of Resonator 1 arm A.
+  Port 4 of MCOUPLED leaves floating (or connect a small cap to GND
+  to represent the gap capacitance on the port side — optional).
+
+  NOTE: In QUCS-S the MCOUPLED has 4 terminals:
+    1 ──[line 1]── 2
+    3 ──[line 2]── 4
+  Lines 1-2 and 3-4 are edge-coupled.  The gap S is between them.
+
+STEP 4.5 — Resonator 1
+  • MLIN for arm A: W=3.059mm, L=47.348mm, Subst=Subst1
+  • Wire connecting arm A to arm B (the fold at the top)
+  • MLIN for arm B: W=3.059mm, L=47.348mm, Subst=Subst1
+  • MOPEN at the end of arm B: W=3.059mm, Subst=Subst1
+    (MOPEN corrects for the fringing capacitance at open end,
+     shortening the effective electrical length)
+
+  The open end of arm B faces arm A of Resonator 2 → the gap
+  between them is the S12 coupling gap.
+
+STEP 4.6 — Interior coupling gaps (repeat for S12, S23, S34, S45)
+  • MCOUPLED between arm B of Res N and arm A of Res N+1
+  • W = 3.059 mm
+  • L = 47.348 mm  (= arm length — couple along the full arm)
+  • S = gap value from the table:
+      S12 = 2.649 mm
+      S23 = 2.649 mm
+      S34 = 2.649 mm
+      S45 = 2.649 mm
+
+STEP 4.7 — Resonators 2 through 5
+  Repeat Step 4.5 for each resonator.
+
+STEP 4.8 — Output coupling gap and port
+  Mirror of Step 4.4.  S56 = 2.472 mm.
+
+STEP 4.9 — Place port 2
+  Same as port 1.
+
+STEP 4.10 — AC simulation block
+  • Components → Simulations → "AC Simulation"
+  • Type: linear sweep
+  • Start: 700 MHz
+  • Stop:  1050 MHz
+  • Points: 1401
+  • (or use logarithmic — fine either way)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5 — S-PARAMETER DISPLAY AND PROBING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After running the simulation (F2 or Simulate → Run):
+
+1. Add a "Diagram" block:
+   • Insert → Diagram → "Cartesian"
+   • In the properties, add:
+       dB(S[2,1])   → S21 in dB
+       dB(S[1,1])   → S11 in dB
+
+2. Set Y-axis: −80 to 5 dB
+3. Set X-axis: 700 to 1050 MHz
+
+4. To check the passband in detail, add a second Cartesian diagram
+   zoomed to 850–890 MHz.
+
+5. Marker: right-click on trace → "Add Marker"
+   Place marker at 868 MHz to read exact S21 and S11 values.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 6 — TUNING PROCEDURE (manual optimisation)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The synthesis values are starting points.  QUCS-S open-end and
+dispersion corrections will shift the passband slightly.
+
+Adjust in this order:
+
+STEP 6.1 — Centre frequency correction
+  If the passband appears shifted (common: 5–15 MHz low due to
+  open-end fringing adding electrical length):
+  → Shorten ALL arm lengths by equal amounts.
+  → Try reducing L from 47.348 mm by 1 mm steps.
+  Goal: S21 peak at exactly 868 MHz.
+
+STEP 6.2 — Return loss correction
+  If S11 in the passband is worse than −15 dB:
+  → Adjust S01 (input/output gap) in 0.1 mm steps.
+  → Smaller S01 → stronger external coupling → better return loss
+    (but also shifts centre slightly).
+  Target: S11 < −20 dB across 863–873 MHz.
+
+STEP 6.3 — Bandwidth correction
+  If BW is too wide → increase all interior gaps (S12…S45).
+  If BW is too narrow → decrease all interior gaps.
+  Keep S12=S45 and S23=S34=S34 symmetric.
+  Adjust in 0.05–0.1 mm steps.
+  Target: 3 dB BW = 10 MHz.
+
+STEP 6.4 — Ripple equalisation
+  If the passband shows unequal ripple (one side deeper):
+  → Break symmetry slightly: adjust S12/S45 independently.
+  → This is usually <0.2 mm deviation.
+
+TIP: Use QUCS-S "Tuning" mode:
+  Edit → Tuning  (or press F5)
+  Click on any parameter → drag the slider → watch the plot update live.
+  Much faster than re-running the simulation each time.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 7 — EXPECTED REALISTIC PERFORMANCE ON FR4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After EM optimisation in QUCS-S you should expect:
+
+  Parameter           Realistic FR4 result
+  ──────────────────  ─────────────────────────────────────────
+  Insertion loss      3 – 5 dB  (loss budget dominated by tan δ)
+  Return loss         > 15 dB in passband  (target >20 dB)
+  3 dB bandwidth      8 – 12 MHz  (tune to 10 MHz)
+  Stopband @ ±50 MHz  > 30 dB attenuation
+  Board area          ≈ 50 mm × 25 mm  (5 hairpins at 868 MHz)
+
+The 3–5 dB IL on FR4 is unavoidable for FBW=1.15% at N=5.
+If the system link budget cannot absorb it, options are:
+  a) Add a low-noise amplifier before the filter
+  b) Switch to Rogers 4003C — expect ~0.8–1.2 dB IL instead
+  c) Widen BW to 20 MHz → IL drops to ~2 dB on FR4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 8 — EXPORT FROM QUCS-S
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After tuning is complete:
+
+8.1 Export S-parameters:
+  File → Export Data → choose ".s2p" (Touchstone format)
+  This is your final Stage 3 result for comparison with Stage 2.
+
+8.2 Export schematic as PDF:
+  File → Print → PDF printer
+  Keep as documentation.
+
+8.3 Record the final tuned values:
+  • All arm lengths (may differ from 47.348 mm after tuning)
+  • All gap values (S01, S12, S23, S34, S45, S56)
+  • These go into the PCB layout (KiCad / Altium / EasyEDA).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 9 — IMPORTING STAGE 2 .S2P FOR COMPARISON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You can overlay the Stage 2 circuit model result with the QUCS-S result:
+
+1. In QUCS-S, go to: File → Load Data → select stage2_network.s2p
+2. It appears in the "Data" panel on the left.
+3. In your Cartesian diagram, click "Edit" → add the S2P dataset
+   variables alongside the simulation variables.
+4. You will see the ideal J-inverter model vs. the physical layout.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 10 — PARAMETER REFERENCE TABLE (starting values)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All dimensions in mm.  Adjust during tuning.
+
+  Component       Parameter   Start value    Tune range
+  ─────────────── ─────────── ─────────────  ─────────────────
+  All MLIN/MCOUP  W           3.059 mm       fixed (= 50 Ω)
+  Resonator arms  L_arm       47.348 mm      44 – 49 mm
+  Fold gap        g_fold      1.0 mm         0.5 – 2.0 mm
+  Gap S01 (I/O)   S           2.472 mm       1.8 – 3.2 mm
+  Gap S12, S45    S           2.649 mm       2.0 – 3.5 mm
+  Gap S23, S34    S           2.649 mm       2.0 – 3.5 mm
+  Feed line       L           5.0 mm         3 – 10 mm (no effect)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF STAGE 3 QUCS-S GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
