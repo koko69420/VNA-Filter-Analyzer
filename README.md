@@ -55,6 +55,34 @@ A standalone, professional desktop application for analyzing and comparing Vecto
 
 ---
 
+## Hardware Prototype & Filter Design Evidence
+
+### Physical Microstrip Hairpin Filter with DGS
+Below is the physical fabricated prototype on copper-clad microwave substrate, measured with a calibrated scale showing the hairpin resonator lengths, coupling gaps, and etched Defected Ground Structure (DGS):
+
+<p align="center">
+  <img src="dimentions_physical/dgs_filter_with_mesurements.jpg" alt="Fabricated DGS Microstrip Filter with Measurements" width="700">
+</p>
+
+### RF Simulation & Toolchain Architecture
+The RF filter design flow integrates Qucs Studio electromagnetic synthesis with the VNA Filter Analyzer characterization engine:
+
+| Qucs Hairpin BPF Schematic | Toolchain Workflow |
+| :---: | :---: |
+| ![Qucs Schematic](hairpin_bpf_qucs_schematic.png) | ![Toolchain Workflow](hairpin_filter_toolchain_workflow.png) |
+
+### Measured & Simulated S-Parameter Responses
+
+| Filter Response with DGS (`wdgs`) | Filter Response without DGS (`wodgs`) |
+| :---: | :---: |
+| ![With DGS Filter Plot](wdgs_filter_plot.png) | ![Without DGS Filter Plot](wodgs_filter_plot.png) |
+
+| Multi-Stage Tuning Comparison (Stage 1 vs. Stage 2) | Combined S-Parameter Characterization |
+| :---: | :---: |
+| ![Stage 1 vs Stage 2](results/stage2_vs_stage1.png) | ![Filter Plot](filter_plot.png) |
+
+---
+
 ## How to Run on Any Computer with Python
 
 ### Option 1: Universal Wheel (`.whl`) — Any OS (Windows / macOS / Linux)
